@@ -12,5 +12,8 @@
   "scripts": {
     "start": "webpack-dev-server",
     "tsc": "tsc"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }

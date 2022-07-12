@@ -11,12 +11,9 @@ export type TreeNode = {
 // recurrent 
 export function Mirror(tree: TreeNode): TreeNode {
     if (tree.type === 'node') {
-        const newTree: TreeNode = {
-            left: Mirror(tree.right),
-            right: Mirror(tree.left),
-            type: 'node',
-        }
-        return newTree
+        const tmp = Mirror(tree.left)
+        tree.left = Mirror(tree.right)
+        tree.right = tmp
     }
     return tree
 }
@@ -45,7 +42,7 @@ export function MirrorWhile(tree: TreeNode): TreeNode {
     return newTree
 }
 
-// on flattened tree
+// on flattened tree, in-place
 export function MirrorArr(arr: number[]): number[] {
     // const arr = [...inArr]
     for (let i = 0; i < arr.length; i += 3) {
@@ -54,6 +51,18 @@ export function MirrorArr(arr: number[]): number[] {
         arr[i + 1] = tmp
     }
     return arr
+}
+
+// on flattened tree, create new array
+export function MirrorArrCopy(arr: number[]): number[] {
+    const newArr = []
+    newArr.length = arr.length
+    for (let i = 0; i < arr.length; i += 3) {
+        newArr[i] = arr[i + 1]
+        newArr[i + 1] = arr[i]
+        newArr[i + 2] = arr[i + 2]
+    }
+    return newArr
 }
 
 export function Array2Tree(arr: number[], index: number): TreeNode {
@@ -171,20 +180,25 @@ console.log('Mirror works:',
     JSON.stringify(binTree) === JSON.stringify(Mirror(Mirror(binTree))))
 console.log('Mirror is not equal to orig tree:',
     JSON.stringify(binTree) !== JSON.stringify(Mirror(binTree)))
+Mirror(binTree) //restore
 
 let arr = Tree2Array(binTree)
 const newTree = Array2Tree(arr, 0)
 console.log('Tree -> Arr -> Tree conversion works:',
     JSON.stringify(binTree) === JSON.stringify(newTree))
 
-console.log('MirrorArr works:',
+// console.log('MirrorArr works:',
+//     JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArrCopy(arr), 0)))
+console.log('MirrorArr (in-place) works:',
     JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArr(arr), 0)))
+Mirror(binTree)
+
 console.log('MirrorWhile works:',
-    JSON.stringify(Mirror(binTree)) === JSON.stringify(MirrorWhile(binTree)))
+    JSON.stringify(binTree) === JSON.stringify(Mirror(MirrorWhile(binTree))))
 
 isNum = true
 console.log('Generate a big tree...')
-binTree = GenerateTree(10, 0.7, 22, 0, isNum)
+binTree = GenerateTree(10, 0.7, 23, 0, isNum)
 console.log('Convert big tree to flat arr...')
 arr = Tree2Array(binTree)
 // binTree = GenerateTree(10, 0.7, 16, 0, isNum)
@@ -194,16 +208,20 @@ perfTest(Mirror, binTree, repeats)
 perfTest(MirrorWhile, binTree, repeats)
 console.log('Test run')
 for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-    console.log(`Call to Mirror (recurrent) took ${Math.min.apply(null,
+    console.log(`Call to Mirror (recurrent, in-place) took ${Math.min.apply(null,
         perfTest(Mirror, binTree, repeats).time,
     )
         } milliseconds.`)
-    console.log(`Call to Mirror (arr) took ${Math.min.apply(null,
+    // console.log(`Call to Mirror (arr, return copy) took ${Math.min.apply(null,
+    //     perfTest(MirrorArrCopy, arr, repeats).time,
+    // )
+    //     } milliseconds.`)
+    console.log(`Call to Mirror (arr, in-place) took ${Math.min.apply(null,
         perfTest(MirrorArr, arr, repeats).time,
     )
         } milliseconds.`)
 
-    console.log(`Call to Mirror (while) took ${Math.min.apply(null,
+    console.log(`Call to Mirror (while, in-place) took ${Math.min.apply(null,
         perfTest(MirrorWhile, binTree, repeats).time,
     )
         } milliseconds.`)

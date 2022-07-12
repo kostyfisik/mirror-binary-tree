@@ -8,8 +8,7 @@ export type TreeNode = {
     type: 'data'
 }
 
-
-
+// recurrent 
 export function Mirror(tree: TreeNode): TreeNode {
     if (tree.type === 'node') {
         const newTree: TreeNode = {
@@ -22,6 +21,8 @@ export function Mirror(tree: TreeNode): TreeNode {
     return tree
 }
 
+
+// iterative
 export function MirrorWhile(tree: TreeNode): TreeNode {
     // const newTree = cloneDeep(tree)
     const newTree = tree
@@ -44,6 +45,17 @@ export function MirrorWhile(tree: TreeNode): TreeNode {
     return newTree
 }
 
+// on flattened tree
+export function MirrorArr(inArr: number[]): number[] {
+    // const arr = [...inArr]
+    for (let i = 0; i < arr.length; i += 3) {
+        const tmp = arr[i]
+        arr[i] = arr[i + 1]
+        arr[i + 1] = tmp
+    }
+    return arr
+}
+
 export function Array2Tree(arr: number[], index: number): TreeNode {
     if (arr[index] != 0) {
         const newTree: TreeNode = {
@@ -60,14 +72,28 @@ export function Array2Tree(arr: number[], index: number): TreeNode {
     return newTree
 
 }
+
+// Tree is converted to 1D array, numbers are branch index values. Nodes has
+// data placeholder (filled with zero), data has branches placeholders (filled
+// with zero) 
+//              ______________________________ data values
+//              |               |         |
+//              V               V         V 
+// [3,6,0,  0,0,42, 9,12,0, 0,0,333,  0,0,777 ]
+//  0       3       6       9        12  <--------- array index
+//        
+//  So, root node [3,6,0] has two branches. Left (index=3) is a data node, with
+//  value=42, right node (index=6) refers to two data nodes (at index=9 and 12)
+//  with values 333 and 777.
+//
+//  For some real case value can be a key for a dictionary with some real
+//  payload of the tree.
 export function Tree2Array(tree: TreeNode): number[] {
     const arr: number[] = []
     const stack = [tree]
     const stackIndex = [0]
     let newIndex = 0
     while (stack.length !== 0) {
-        // if (arr.length > 20) break
-        // console.log('before making arr... ', arr)
         const node = stack.pop()
         const nodeIndex = stackIndex.pop()
         if (node.type == 'data') {
@@ -77,8 +103,6 @@ export function Tree2Array(tree: TreeNode): number[] {
             arr[nodeIndex + 2] = typeof (node.data) == 'number' ? node.data : 0
             continue
         }
-        // console.log('node, newIndex', newIndex)
-        // console.log('arr.length', arr.length)
         const nextIndex = newIndex + 3
         const nextIndex2 = nextIndex + 3
         newIndex = nextIndex2
@@ -94,7 +118,6 @@ export function Tree2Array(tree: TreeNode): number[] {
         arr[nodeIndex + 2] = 0
 
     }
-    // console.log('after making arr... ', arr)
     return arr
 }
 
@@ -124,12 +147,12 @@ export function GenerateTree(
 }
 
 function perfTest(
-    fn: (tree: TreeNode) => TreeNode,
-    tree: TreeNode,
+    fn: (tree: TreeNode | number[]) => TreeNode | number[],
+    tree: TreeNode | number[],
     repeats: number,
-): { time: number[]; tree: TreeNode } {
+): { time: number[]; tree: TreeNode | number[] } {
     const time: number[] = []
-    let newTree: TreeNode = tree
+    let newTree: TreeNode | number[] = tree
     for (let i = 0; i < repeats; i++) {
         const t0 = performance.now()
         newTree = fn(tree)
@@ -149,36 +172,43 @@ console.log('Mirror works:',
 console.log('Mirror is not equal to orig tree:',
     JSON.stringify(binTree) !== JSON.stringify(Mirror(binTree)))
 
-console.log('MirrorWhile works:',
-    JSON.stringify(Mirror(binTree)) === JSON.stringify(MirrorWhile(binTree)))
-
-const arr = Tree2Array(binTree)
-
+let arr = Tree2Array(binTree)
 const newTree = Array2Tree(arr, 0)
 console.log('Tree -> Arr -> Tree conversion works:',
     JSON.stringify(binTree) === JSON.stringify(newTree))
 
-// isNum = true
-// console.log('Generate a big tree...')
-// binTree = GenerateTree(10, 0.7, 22, 0, isNum)
-// // binTree = GenerateTree(10, 0.7, 16, 0, isNum)
-// const repeats = 1
-// console.log('Cache/JIT warm-up... (are there any in JS engines?)')
-// perfTest(Mirror, binTree, repeats)
-// perfTest(MirrorWhile, binTree, repeats)
-// console.log('Test run')
-// for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-//     console.log(`Call to Mirror (recurrent) took ${Math.min.apply(null,
-//         perfTest(Mirror, binTree, repeats).time,
-//     )
-//         } milliseconds.`)
+console.log('MirrorArr works:',
+    JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArr(arr), 0)))
+console.log('MirrorWhile works:',
+    JSON.stringify(Mirror(binTree)) === JSON.stringify(MirrorWhile(binTree)))
 
-//     console.log(`Call to Mirror (while) took ${Math.min.apply(null,
-//         perfTest(MirrorWhile, binTree, repeats).time,
-//     )
-//         } milliseconds.`)
-// }
-let message: string = '<br><br><pre>' + JSON.stringify(arr) + '</pre>'
-message += '<pre>' + JSON.stringify(binTree, null, 2) + '</pre>'
+isNum = true
+console.log('Generate a big tree...')
+binTree = GenerateTree(10, 0.7, 22, 0, isNum)
+console.log('Convert big tree to flat arr...')
+arr = Tree2Array(binTree)
+// binTree = GenerateTree(10, 0.7, 16, 0, isNum)
+const repeats = 1
+console.log('Cache/JIT warm-up... (are there any in JS engines?)')
+perfTest(Mirror, binTree, repeats)
+perfTest(MirrorWhile, binTree, repeats)
+console.log('Test run')
+for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    console.log(`Call to Mirror (recurrent) took ${Math.min.apply(null,
+        perfTest(Mirror, binTree, repeats).time,
+    )
+        } milliseconds.`)
+    console.log(`Call to Mirror (arr) took ${Math.min.apply(null,
+        perfTest(MirrorArr, arr, repeats).time,
+    )
+        } milliseconds.`)
 
-document.getElementById("root").innerHTML = message;
+    console.log(`Call to Mirror (while) took ${Math.min.apply(null,
+        perfTest(MirrorWhile, binTree, repeats).time,
+    )
+        } milliseconds.`)
+}
+
+// let message: string = '<br><br><pre>' + JSON.stringify(arr) + '</pre>'
+// message += '<pre>' + JSON.stringify(binTree, null, 2) + '</pre>'
+// document.getElementById("root").innerHTML = message;

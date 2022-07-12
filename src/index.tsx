@@ -46,7 +46,7 @@ export function MirrorWhile(tree: TreeNode): TreeNode {
 }
 
 // on flattened tree
-export function MirrorArr(inArr: number[]): number[] {
+export function MirrorArr(arr: number[]): number[] {
     // const arr = [...inArr]
     for (let i = 0; i < arr.length; i += 3) {
         const tmp = arr[i]

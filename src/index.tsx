@@ -8,6 +8,8 @@ export type TreeNode = {
     type: 'data'
 }
 
+
+
 export function Mirror(tree: TreeNode): TreeNode {
     if (tree.type === 'node') {
         const newTree: TreeNode = {
@@ -23,22 +25,80 @@ export function Mirror(tree: TreeNode): TreeNode {
 export function MirrorWhile(tree: TreeNode): TreeNode {
     // const newTree = cloneDeep(tree)
     const newTree = tree
+    let totalNodes = 0
     const stack = [newTree]
     while (stack.length !== 0) {
         const node = stack.pop()
-        if (node && node.type === 'data')
+        totalNodes += 1
+        if (node.type == 'data') {
             continue
-        if (node && node.type === 'node') {
-            const tmp = node.left
-            node.left = node.right
-            node.right = tmp
-
-            stack.push(node.left)
-            stack.push(node.right)
         }
+        const tmp = node.left
+        node.left = node.right
+        node.right = tmp
+
+        stack.push(node.left)
+        stack.push(node.right)
     }
+    console.log('Total data nodes:', totalNodes)
     return newTree
 }
+
+export function Array2Tree(arr: number[], index: number): TreeNode {
+    if (arr[index] != 0) {
+        const newTree: TreeNode = {
+            left: Array2Tree(arr, arr[index]),
+            right: Array2Tree(arr, arr[index + 1]),
+            type: 'node',
+        }
+        return newTree
+    }
+    const newTree: TreeNode = {
+        data: arr[index + 2],
+        type: 'data',
+    }
+    return newTree
+
+}
+export function Tree2Array(tree: TreeNode): number[] {
+    const arr: number[] = []
+    const stack = [tree]
+    const stackIndex = [0]
+    let newIndex = 0
+    while (stack.length !== 0) {
+        // if (arr.length > 20) break
+        // console.log('before making arr... ', arr)
+        const node = stack.pop()
+        const nodeIndex = stackIndex.pop()
+        if (node.type == 'data') {
+            // console.log('data')
+            arr[nodeIndex] = 0
+            arr[nodeIndex + 1] = 0
+            arr[nodeIndex + 2] = typeof (node.data) == 'number' ? node.data : 0
+            continue
+        }
+        // console.log('node, newIndex', newIndex)
+        // console.log('arr.length', arr.length)
+        const nextIndex = newIndex + 3
+        const nextIndex2 = nextIndex + 3
+        newIndex = nextIndex2
+
+        arr[nodeIndex] = nextIndex
+        stackIndex.push(nextIndex)
+        stack.push(node.left)
+
+        arr[nodeIndex + 1] = nextIndex2
+        stackIndex.push(nextIndex2)
+        stack.push(node.right)
+
+        arr[nodeIndex + 2] = 0
+
+    }
+    // console.log('after making arr... ', arr)
+    return arr
+}
+
+
 
 export function GenerateTree(
     maxDataSize: number,
@@ -92,25 +152,33 @@ console.log('Mirror is not equal to orig tree:',
 console.log('MirrorWhile works:',
     JSON.stringify(Mirror(binTree)) === JSON.stringify(MirrorWhile(binTree)))
 
-isNum = true
-console.log('Generate a big tree...')
-binTree = GenerateTree(10, 0.7, 22, 0, isNum)
-// binTree = GenerateTree(10, 0.7, 16, 0, isNum)
-const repeats = 1
-console.log('Cache/JIT warm-up... (are there any in JS engines?)')
-perfTest(Mirror, binTree, repeats)
-perfTest(MirrorWhile, binTree, repeats)
-console.log('Test run')
-for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-    console.log(`Call to Mirror (recurrent) took ${Math.min.apply(null,
-        perfTest(Mirror, binTree, repeats).time,
-    )
-        } milliseconds.`)
+const arr = Tree2Array(binTree)
 
-    console.log(`Call to Mirror (while) took ${Math.min.apply(null,
-        perfTest(MirrorWhile, binTree, repeats).time,
-    )
-        } milliseconds.`)
-}
-// const message: string = `Hello ${x}`;
-// document.getElementById("root").innerHTML = message;
+const newTree = Array2Tree(arr, 0)
+console.log('Tree -> Arr -> Tree conversion works:',
+    JSON.stringify(binTree) === JSON.stringify(newTree))
+
+// isNum = true
+// console.log('Generate a big tree...')
+// binTree = GenerateTree(10, 0.7, 22, 0, isNum)
+// // binTree = GenerateTree(10, 0.7, 16, 0, isNum)
+// const repeats = 1
+// console.log('Cache/JIT warm-up... (are there any in JS engines?)')
+// perfTest(Mirror, binTree, repeats)
+// perfTest(MirrorWhile, binTree, repeats)
+// console.log('Test run')
+// for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+//     console.log(`Call to Mirror (recurrent) took ${Math.min.apply(null,
+//         perfTest(Mirror, binTree, repeats).time,
+//     )
+//         } milliseconds.`)
+
+//     console.log(`Call to Mirror (while) took ${Math.min.apply(null,
+//         perfTest(MirrorWhile, binTree, repeats).time,
+//     )
+//         } milliseconds.`)
+// }
+let message: string = '<br><br><pre>' + JSON.stringify(arr) + '</pre>'
+message += '<pre>' + JSON.stringify(binTree, null, 2) + '</pre>'
+
+document.getElementById("root").innerHTML = message;

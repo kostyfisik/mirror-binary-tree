@@ -171,61 +171,67 @@ function perfTest(
     return { time, tree: newTree }
 }
 
-// Setup 
-let isNum = true
-const minLength = 3
-let binTree = GenerateTree(100, 0.7, minLength, 0, isNum)
-console.log('Testring tree:', JSON.stringify(binTree))
-console.log('Mirror works:',
-    JSON.stringify(binTree) === JSON.stringify(Mirror(Mirror(binTree))))
-console.log('Mirror is not equal to orig tree:',
-    JSON.stringify(binTree) !== JSON.stringify(Mirror(binTree)))
-Mirror(binTree) //restore
 
-let arr = Tree2Array(binTree)
-const newTree = Array2Tree(arr, 0)
-console.log('Tree -> Arr -> Tree conversion works:',
-    JSON.stringify(binTree) === JSON.stringify(newTree))
+function main() {
+    // Setup 
+    let isNum = true
+    const minLength = 3
+    let binTree = GenerateTree(100, 0.7, minLength, 0, isNum)
+    console.log('Testring tree:', JSON.stringify(binTree))
+    console.log('Mirror works:',
+        JSON.stringify(binTree) === JSON.stringify(Mirror(Mirror(binTree))))
+    console.log('Mirror is not equal to orig tree:',
+        JSON.stringify(binTree) !== JSON.stringify(Mirror(binTree)))
+    Mirror(binTree) //restore
 
-// console.log('MirrorArr works:',
-//     JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArrCopy(arr), 0)))
-console.log('MirrorArr (in-place) works:',
-    JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArr(arr), 0)))
-Mirror(binTree)
+    let arr = Tree2Array(binTree)
+    const newTree = Array2Tree(arr, 0)
+    console.log('Tree -> Arr -> Tree conversion works:',
+        JSON.stringify(binTree) === JSON.stringify(newTree))
 
-console.log('MirrorWhile works:',
-    JSON.stringify(binTree) === JSON.stringify(Mirror(MirrorWhile(binTree))))
+    // console.log('MirrorArr works:',
+    //     JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArrCopy(arr), 0)))
+    console.log('MirrorArr (in-place) works:',
+        JSON.stringify(Mirror(binTree)) === JSON.stringify(Array2Tree(MirrorArr(arr), 0)))
+    Mirror(binTree)
 
-isNum = true
-console.log('Generate a big tree...')
-binTree = GenerateTree(10, 0.7, 23, 0, isNum)
-console.log('Convert big tree to flat arr...')
-arr = Tree2Array(binTree)
-// binTree = GenerateTree(10, 0.7, 16, 0, isNum)
-const repeats = 1
-console.log('Cache/JIT warm-up... (are there any in JS engines?)')
-perfTest(Mirror, binTree, repeats)
-perfTest(MirrorWhile, binTree, repeats)
-console.log('Test run')
-for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-    console.log(`Call to Mirror (recurrent, in-place) took ${Math.min.apply(null,
-        perfTest(Mirror, binTree, repeats).time,
-    )
-        } milliseconds.`)
-    // console.log(`Call to Mirror (arr, return copy) took ${Math.min.apply(null,
-    //     perfTest(MirrorArrCopy, arr, repeats).time,
-    // )
-    //     } milliseconds.`)
-    console.log(`Call to Mirror (arr, in-place) took ${Math.min.apply(null,
-        perfTest(MirrorArr, arr, repeats).time,
-    )
-        } milliseconds.`)
+    console.log('MirrorWhile works:',
+        JSON.stringify(binTree) === JSON.stringify(Mirror(MirrorWhile(binTree))))
 
-    console.log(`Call to Mirror (while, in-place) took ${Math.min.apply(null,
-        perfTest(MirrorWhile, binTree, repeats).time,
-    )
-        } milliseconds.`)
+    isNum = true
+    console.log('Generate a big tree...')
+    binTree = GenerateTree(10, 0.7, 23, 0, isNum)
+    console.log('Convert big tree to flat arr...')
+    arr = Tree2Array(binTree)
+    // binTree = GenerateTree(10, 0.7, 16, 0, isNum)
+    const repeats = 1
+    console.log('Cache/JIT warm-up... (are there any in JS engines?)')
+    perfTest(Mirror, binTree, repeats)
+    perfTest(MirrorWhile, binTree, repeats)
+    console.log('Test run')
+    for (let _ in [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+        console.log(`Call to Mirror (recurrent, in-place) took ${Math.min.apply(null,
+            perfTest(Mirror, binTree, repeats).time,
+        )
+            } milliseconds.`)
+        // console.log(`Call to Mirror (arr, return copy) took ${Math.min.apply(null,
+        //     perfTest(MirrorArrCopy, arr, repeats).time,
+        // )
+        //     } milliseconds.`)
+        console.log(`Call to Mirror (arr, in-place) took ${Math.min.apply(null,
+            perfTest(MirrorArr, arr, repeats).time,
+        )
+            } milliseconds.`)
+
+        console.log(`Call to Mirror (while, in-place) took ${Math.min.apply(null,
+            perfTest(MirrorWhile, binTree, repeats).time,
+        )
+            } milliseconds.`)
+    }
 }
+let message: string = '<br>Please, wait the benchmark to complete, it may take few minutes (about 30 sec on Intel i7 produced in 2018) and ~3Gb RAM. See results in developer console.<br>'
+document.getElementById("root").innerHTML = message;
+setTimeout(main, 10)
 
 // let message: string = '<br><br><pre>' + JSON.stringify(arr) + '</pre>'
 // message += '<pre>' + JSON.stringify(binTree, null, 2) + '</pre>'
